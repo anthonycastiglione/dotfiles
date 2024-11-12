@@ -1,0 +1,5 @@
+0000000000000000000000000000000000000000 f5385cc613364bb5772d71ba6e59e7fd7ee6f2ab ferret <ferret@bazzite.(none)> 1721954971 -0500	clone: from github.com:anthonycastiglione/nvim.git
+f5385cc613364bb5772d71ba6e59e7fd7ee6f2ab bf590326e0c0ffdb33e0893f9fd73e6741b3447f Tony Castiglione <anthony.castiglione@gmail.com> 1725548710 -0500	commit: Add blame, neotest, whitespace plugins, configuration for same. Update certain ruby files without a .rb extension to be read as ruby
+bf590326e0c0ffdb33e0893f9fd73e6741b3447f f674e60cf2becf00ec5d852a7247d46a3f3d2f68 Tony Castiglione <anthony.castiglione@gmail.com> 1726063106 -0500	pull: Fast-forward
+f674e60cf2becf00ec5d852a7247d46a3f3d2f68 2f42bab438ce1fa4433c17827188177a40bc2d79 Tony Castiglione <anthony.castiglione@gmail.com> 1729264718 -0500	commit: Mason tool installer
+2f42bab438ce1fa4433c17827188177a40bc2d79 fedea51c13c9dd407da3c59e00283c63146b536b Tony Castiglione <anthony.castiglione@gmail.com> 1730577323 -0500	commit: Add stuff for elixir

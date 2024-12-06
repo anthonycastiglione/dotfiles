@@ -17,9 +17,16 @@ zstyle :compinstall filename '/home/ferret/.zshrc'
 autoload -Uz compinit
 compinit
 # End of lines added by compinstall
-source ~/powerlevel10k/powerlevel10k.zsh-theme
 
+p10kpath=~/powerlevel10k
+if [ ! -d "$p10kpath" ]; then
+  printf "Powerlevel10k not found at %s, attempting to install...\n" "$p10kpath"
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+fi
+
+source ~/powerlevel10k/powerlevel10k.zsh-theme
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 export PATH=$PATH:~/bin
+export EDITOR=nvim

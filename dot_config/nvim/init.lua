@@ -212,7 +212,7 @@ require('telescope').setup{
     }
   },
   defaults = {
-    file_ignore_patterns = {".git/", ".elixir_ls", "_build", "deps"},
+    file_ignore_patterns = {".git/", ".elixir_ls", "_build", "deps", ".tmp/"},
     mappings = {
       n = {
     	  ['<C-d>'] = require('telescope.actions').delete_buffer

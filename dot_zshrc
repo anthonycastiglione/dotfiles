@@ -30,6 +30,9 @@ source ~/powerlevel10k/powerlevel10k.zsh-theme
 
 export PATH=$PATH:~/bin
 export EDITOR=nvim
-if brew list | grep -q asdf; then
-  . /opt/homebrew/opt/asdf/libexec/asdf.sh
+
+if command -v brew 2>&1 >/dev/null; then
+  if brew list | grep -q asdf; then
+    . /opt/homebrew/opt/asdf/libexec/asdf.sh
+  fi
 fi

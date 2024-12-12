@@ -245,6 +245,7 @@ require("conform").setup({
     lsp_format = "fallback",
   },
   formatters_by_ft = {
+    eruby = { "erb_format" },
     ruby = { "rubyfmt" },
   },
 })
@@ -255,6 +256,7 @@ require('mason-tool-installer').setup {
   -- start
   ensure_installed = {
     'golangci-lint',
+    'erb-formatter',
     'luaformatter',
     'rubyfmt',
     'shfmt',

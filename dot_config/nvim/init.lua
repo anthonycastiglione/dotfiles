@@ -101,6 +101,8 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities()
 -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
 
 
+require("lspconfig").vtsls.setup({})
+
 require('lspconfig')['elixirls'].setup {
   -- you need to specify the executable command mannualy for elixir-ls
   cmd = { "/home/ferret/.local/share/nvim/mason/bin/elixir-ls" },
@@ -136,7 +138,7 @@ vim.cmd [[ hi PmenuSel guibg=#2f394f ]]
 
 -- Extra syntax highlighting
 require('nvim-treesitter.configs').setup({
-  ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline", "ruby", "go", "elixir", "erlang", "eex", "heex" },
+  ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline", "ruby", "go", "elixir", "erlang", "eex", "heex", "javascript" },
   highlight = {
     enable = true,
     -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
@@ -247,6 +249,7 @@ require("conform").setup({
   formatters_by_ft = {
     eruby = { "erb_format" },
     ruby = { "rubyfmt" },
+    javascript = { "standardjs" },
   },
 })
 
@@ -255,6 +258,8 @@ require('mason-tool-installer').setup {
   -- a list of all tools you want to ensure are installed upon
   -- start
   ensure_installed = {
+    'vtsls',
+    'standardjs',
     'golangci-lint',
     'erb-formatter',
     'luaformatter',

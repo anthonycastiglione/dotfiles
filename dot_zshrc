@@ -36,3 +36,5 @@ if command -v brew 2>&1 >/dev/null; then
     . /opt/homebrew/opt/asdf/libexec/asdf.sh
   fi
 fi
+
+export GPG_TTY=$(tty)

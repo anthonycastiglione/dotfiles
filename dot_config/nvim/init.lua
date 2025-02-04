@@ -103,6 +103,13 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
 require("lspconfig").vtsls.setup({})
 
+local lspconfig = require('lspconfig')
+lspconfig.ruby_lsp.setup({
+  init_options = {
+    formatter = 'standard',
+    linters = { 'standard' },
+  },
+})
 require('lspconfig')['elixirls'].setup {
   -- you need to specify the executable command mannualy for elixir-ls
   cmd = { "/home/ferret/.local/share/nvim/mason/bin/elixir-ls" },
@@ -194,6 +201,18 @@ require('lint').linters_by_ft = {
   ruby = {'ruby'}
 }
 
+vim.opt.signcolumn = "yes" -- otherwise it bounces in and out, not strictly needed though
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "ruby",
+  group = vim.api.nvim_create_augroup("RubyLSP", { clear = true }), -- also this is not /needed/ but it's good practice
+  callback = function()
+    vim.lsp.start {
+      name = "standard",
+      cmd = { "~/.asdf/shims/standardrb", "--lsp" },
+    }
+  end,
+})
+
 vim.api.nvim_create_autocmd({ "BufModifiedSet", "BufEnter" }, {
   callback = function()
 
@@ -214,7 +233,7 @@ require('telescope').setup{
     }
   },
   defaults = {
-    file_ignore_patterns = {".git/", ".elixir_ls", "_build", "deps", ".tmp/"},
+    file_ignore_patterns = {".git/", ".elixir_ls", "_build", "deps", ".tmp/", "node_modules/"},
     mappings = {
       n = {
     	  ['<C-d>'] = require('telescope.actions').delete_buffer
@@ -248,7 +267,6 @@ require("conform").setup({
   },
   formatters_by_ft = {
     eruby = { "erb_format" },
-    ruby = { "rubyfmt" },
     javascript = { "standardjs" },
   },
 })
@@ -260,10 +278,11 @@ require('mason-tool-installer').setup {
   ensure_installed = {
     'vtsls',
     'standardjs',
+    'standardrb',
+    'ruby-lsp',
     'golangci-lint',
     'erb-formatter',
     'luaformatter',
-    'rubyfmt',
     'shfmt',
     'stylua',
     'elixir-ls',
@@ -323,6 +342,7 @@ wk.add({
   { "<leader>nf", "<cmd>NvimTreeFindFile<cr>", desc = "NvimTreeFindFile" },
   { "<leader>nh", "<cmd>nohlsearch<cr>", desc = "nohlsearch" },
   { "<leader>nt", "<cmd>NvimTreeToggle<cr>", desc = "NvimTree" },
+  { "<leader>rt", "<cmd>!ctags -R --exclude=vendor --exclude=node_modules<cr>", desc = "Re-Tag with ctags" },
   { "<leader>s", group = "test running" },
   { "<leader>st",
     function()

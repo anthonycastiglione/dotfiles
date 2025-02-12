@@ -100,6 +100,7 @@ cmp.setup({
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
 
+require("mason").setup({})
 
 require("lspconfig").vtsls.setup({})
 
@@ -135,9 +136,6 @@ require('lspconfig')['gopls'].setup {
     usePlaceholders = true,
   }
 }
-
--- Mason with default config
-require("mason").setup()
 
 -- Colors for menus so they aren't hot pink
 vim.cmd [[ hi Pmenu guibg=#191e29 ]]
@@ -202,16 +200,6 @@ require('lint').linters_by_ft = {
 }
 
 vim.opt.signcolumn = "yes" -- otherwise it bounces in and out, not strictly needed though
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "ruby",
-  group = vim.api.nvim_create_augroup("RubyLSP", { clear = true }), -- also this is not /needed/ but it's good practice
-  callback = function()
-    vim.lsp.start {
-      name = "standard",
-      cmd = { "~/.asdf/shims/standardrb", "--lsp" },
-    }
-  end,
-})
 
 vim.api.nvim_create_autocmd({ "BufModifiedSet", "BufEnter" }, {
   callback = function()
@@ -372,3 +360,4 @@ wk.add({
   desc = "Toggle neotest summary panel" },
   { "<leader>ws", "<cmd>StripWhitespace<cr>", desc = "Strip trailing whitespace" },
 })
+

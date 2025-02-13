@@ -11,6 +11,7 @@ return {
     "nvim-treesitter/nvim-treesitter",
     "olimorris/neotest-rspec",
     "fredrikaverpil/neotest-golang",
+    "nvim-neotest/neotest-python",
     "nvim-neotest/neotest-plenary",
   },
 }

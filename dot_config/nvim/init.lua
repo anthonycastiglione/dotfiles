@@ -111,6 +111,14 @@ lspconfig.ruby_lsp.setup({
     linters = { 'standard' },
   },
 })
+require('lspconfig').ruff.setup {
+  init_options = {
+    settings = {
+      -- Any extra CLI arguments for `ruff` go here.
+      args = {},
+    }
+  }
+}
 require('lspconfig')['elixirls'].setup {
   -- you need to specify the executable command mannualy for elixir-ls
   cmd = { "/home/ferret/.local/share/nvim/mason/bin/elixir-ls" },
@@ -175,7 +183,7 @@ format_on_save.setup({
     lua = formatters.lsp,
     markdown = formatters.prettierd,
     openscad = formatters.lsp,
-    python = formatters.black,
+    python = formatters.ruff,
     rust = formatters.lsp,
     scad = formatters.lsp,
     scss = formatters.lsp,
@@ -256,6 +264,7 @@ require("conform").setup({
   formatters_by_ft = {
     eruby = { "erb_format" },
     javascript = { "standardjs" },
+    python = { "ruff" },
   },
 })
 
@@ -274,6 +283,8 @@ require('mason-tool-installer').setup {
     'shfmt',
     'stylua',
     'elixir-ls',
+    'ruff',
+    'ruff-lsp',
   },
 
   -- if set to true this will check each tool for updates. If updates

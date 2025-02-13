@@ -251,7 +251,7 @@ require("neotest").setup({
   adapters = {
     require("neotest-rspec"),
     require("neotest-golang")(config),
-    -- require("neotest-golang"),
+    require("neotest-python"),
   },
 })
 
@@ -267,6 +267,8 @@ require("conform").setup({
     python = { "ruff" },
   },
 })
+
+require "lsp_signature".setup({})
 
 require('mason-tool-installer').setup {
 

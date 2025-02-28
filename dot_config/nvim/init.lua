@@ -343,6 +343,8 @@ wk.add({
   { "<leader>nf", "<cmd>NvimTreeFindFile<cr>", desc = "NvimTreeFindFile" },
   { "<leader>nh", "<cmd>nohlsearch<cr>", desc = "nohlsearch" },
   { "<leader>nt", "<cmd>NvimTreeToggle<cr>", desc = "NvimTree" },
+  { "<leader>r", group = "ruby-related things"},
+  { "<leader>rd", "Odebugger<Esc>", desc = "Insert 'debugger' one line above" },
   { "<leader>rt", "<cmd>!ctags -R --exclude=vendor --exclude=node_modules<cr>", desc = "Re-Tag with ctags" },
   { "<leader>s", group = "test running" },
   { "<leader>st",

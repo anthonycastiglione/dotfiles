@@ -346,11 +346,11 @@ wk.add({
   { "<leader>rt", "<cmd>!ctags -R --exclude=vendor --exclude=node_modules<cr>", desc = "Re-Tag with ctags" },
   { "<leader>s", group = "test running" },
   { "<leader>sc",
-  function()
-    neotest = require('neotest')
-    neotest.run.stop()
-  end,
-  desc = "Cancel the nearest test" },
+    function()
+      neotest = require('neotest')
+      neotest.run.stop()
+    end,
+    desc = "Cancel the nearest test" },
   { "<leader>st",
     function()
       neotest = require('neotest')

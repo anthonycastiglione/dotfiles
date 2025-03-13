@@ -262,7 +262,6 @@ require("conform").setup({
     lsp_format = "fallback",
   },
   formatters_by_ft = {
-    eruby = { "erb_format" },
     javascript = { "standardjs" },
     python = { "ruff" },
   },
@@ -280,7 +279,6 @@ require('mason-tool-installer').setup {
     'standardrb',
     'ruby-lsp',
     'golangci-lint',
-    'erb-formatter',
     'luaformatter',
     'shfmt',
     'stylua',
@@ -347,6 +345,12 @@ wk.add({
   { "<leader>rd", "Odebugger<Esc>", desc = "Insert 'debugger' one line above" },
   { "<leader>rt", "<cmd>!ctags -R --exclude=vendor --exclude=node_modules<cr>", desc = "Re-Tag with ctags" },
   { "<leader>s", group = "test running" },
+  { "<leader>sc",
+  function()
+    neotest = require('neotest')
+    neotest.run.stop()
+  end,
+  desc = "Cancel the nearest test" },
   { "<leader>st",
     function()
       neotest = require('neotest')

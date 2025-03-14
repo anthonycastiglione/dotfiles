@@ -262,7 +262,7 @@ require("conform").setup({
     lsp_format = "fallback",
   },
   formatters_by_ft = {
-    javascript = { "standardjs" },
+    javascript = { "prettier" },
     python = { "ruff" },
   },
 })
@@ -275,7 +275,7 @@ require('mason-tool-installer').setup {
   -- start
   ensure_installed = {
     'vtsls',
-    'standardjs',
+    'prettier',
     'standardrb',
     'ruby-lsp',
     'golangci-lint',

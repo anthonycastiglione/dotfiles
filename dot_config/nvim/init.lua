@@ -262,6 +262,7 @@ require("conform").setup({
     lsp_format = "fallback",
   },
   formatters_by_ft = {
+    eruby = { "htmlbeautifier" },
     javascript = { "prettier" },
     python = { "ruff" },
   },
@@ -275,6 +276,7 @@ require('mason-tool-installer').setup {
   -- start
   ensure_installed = {
     'vtsls',
+    'htmlbeautifier',
     'prettier',
     'standardrb',
     'ruby-lsp',

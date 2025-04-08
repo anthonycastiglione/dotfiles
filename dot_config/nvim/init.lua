@@ -119,6 +119,11 @@ require('lspconfig').ruff.setup {
     }
   }
 }
+require('lspconfig')['stimulus_ls'].setup{
+  cmd = { 'stimulus-language-server', '--stdio' },
+  filetypes = { 'html', 'ruby', 'eruby', 'blade', 'php' }
+}
+
 require('lspconfig')['elixirls'].setup {
   -- you need to specify the executable command mannualy for elixir-ls
   cmd = { "/home/ferret/.local/share/nvim/mason/bin/elixir-ls" },
@@ -287,6 +292,7 @@ require('mason-tool-installer').setup {
     'elixir-ls',
     'ruff',
     'ruff-lsp',
+    'stimulus-language-server',
   },
 
   -- if set to true this will check each tool for updates. If updates

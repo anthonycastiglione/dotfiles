@@ -33,7 +33,8 @@ export EDITOR=nvim
 
 if command -v brew 2>&1 >/dev/null; then
   if brew list | grep -q asdf; then
-    . /opt/homebrew/opt/asdf/libexec/asdf.sh
+    export ASDF_DATA_DIR="$HOME/.asdf"
+    export PATH="$ASDF_DATA_DIR/shims:$PATH"
   fi
 fi
 
@@ -41,3 +42,4 @@ bindkey "^[[1;5C" forward-word
 bindkey "^[[1;5D" backward-word
 
 export GPG_TTY=$TTY
+

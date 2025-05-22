@@ -388,3 +388,32 @@ wk.add({
   { "<leader>ws", "<cmd>StripWhitespace<cr>", desc = "Strip trailing whitespace" },
 })
 
+-- https://github.com/MeanderingProgrammer/render-markdown.nvim/discussions/390
+local render_markdown = require('render-markdown')
+
+render_markdown.setup({
+  heading = {
+    render_modes = true,
+    icons = { '󰬺  ', '󰬻  ', '󰬼  ', '󰬽  ', '󰬾  ', '󰬿  ' },
+    position = 'inline',
+    backgrounds = {},
+  },
+  checkbox = {
+    unchecked = { icon = '󰄱 ' },
+    checked = { icon = '󰄵 ' },
+    custom = { todo = { rendered = ' ' } },
+  },
+  quote = { repeat_linebreak = true },
+  pipe_table = {
+    preset = 'round',
+    alignment_indicator = '',
+  },
+  link = {
+    wiki = { icon = '󰇈 ' },
+    custom = {
+      python = { pattern = '%.py$', icon = '󰌠 ' },
+      markdown = { pattern = '%.md$', icon = '󰍔 ' },
+    },
+  },
+  sign = { enabled = false },
+})

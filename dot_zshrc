@@ -43,4 +43,6 @@ bindkey "^[[1;5D" backward-word
 
 export GPG_TTY=$TTY
 
-[[ -f /etc/profile ]] && emulate sh -c 'source /etc/profile'
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  [[ -f /etc/profile ]] && emulate sh -c 'source /etc/profile'
+fi

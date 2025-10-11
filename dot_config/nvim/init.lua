@@ -142,26 +142,7 @@ require("lazy").setup({
 				end,
 			})
 
-			vim.lsp.config("ruff", {
-				on_attach = function(_client, bufnr)
-					-- Enable autoformat on save for Python files
-					vim.api.nvim_create_autocmd("BufWritePre", {
-						buffer = bufnr,
-						callback = function()
-							-- First format the code
-							vim.lsp.buf.format({ async = false })
-							-- Then apply code actions to fix issues like unused imports
-							vim.lsp.buf.code_action({
-								filter = function(action)
-									return action.kind == "source.fixAll.ruff"
-										or action.kind == "source.organizeImports"
-								end,
-								apply = true,
-							})
-						end,
-					})
-				end,
-			})
+			vim.lsp.config("ruff", {})
 
 			vim.lsp.config("stimulus_ls", {
 				cmd = { "stimulus-language-server", "--stdio" },
@@ -458,6 +439,10 @@ require("lazy").setup({
 			require("conform").setup({
 				formatters_by_ft = {
 					lua = { "stylua" },
+					python = {
+						"ruff_fix",
+						"ruff_format",
+					},
 				},
 				format_on_save = {
 					lsp_fallback = true,

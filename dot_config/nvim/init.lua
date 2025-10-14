@@ -475,10 +475,10 @@ require("lazy").setup({
 					},
 					mappings = {
 						n = {
-							["<C-w>"] = require("telescope.actions").delete_buffer,
+							["<C-e>"] = require("telescope.actions").delete_buffer,
 						},
 						i = {
-							["<C-w>"] = require("telescope.actions").delete_buffer,
+							["<C-e>"] = require("telescope.actions").delete_buffer,
 						},
 					},
 				},

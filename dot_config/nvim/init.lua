@@ -59,6 +59,11 @@ require("lazy").setup({
 		event = "VeryLazy",
 	},
 
+	{
+		"airblade/vim-gitgutter",
+		event = "VeryLazy",
+	},
+
 	-- Treesitter for syntax highlighting
 	{
 		"nvim-treesitter/nvim-treesitter",

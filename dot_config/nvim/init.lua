@@ -111,6 +111,7 @@ require("lazy").setup({
 					"ruby-lsp",
 					"rubyfmt",
 					"ruff",
+					"ty",
 					"shfmt",
 					"standardjs",
 					"standardrb",
@@ -147,7 +148,7 @@ require("lazy").setup({
 				end,
 			})
 
-			vim.lsp.config("ruff", {})
+			vim.lsp.config("ty", {})
 
 			vim.lsp.config("stimulus_ls", {
 				cmd = { "stimulus-language-server", "--stdio" },
@@ -155,7 +156,7 @@ require("lazy").setup({
 			})
 
 			vim.lsp.enable("ruby_lsp")
-			vim.lsp.enable("ruff")
+			vim.lsp.enable("ty")
 			vim.lsp.enable("stimulus_ls")
 			vim.lsp.enable("lua_ls")
 

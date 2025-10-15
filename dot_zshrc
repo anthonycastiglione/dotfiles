@@ -31,6 +31,10 @@ source ~/powerlevel10k/powerlevel10k.zsh-theme
 export PATH=$PATH:~/bin:~/.local/bin
 export EDITOR=nvim
 
+if [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
 if command -v brew 2>&1 >/dev/null; then
   if brew list | grep -q asdf; then
     export ASDF_DATA_DIR="$HOME/.asdf"

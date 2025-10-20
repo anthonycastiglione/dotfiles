@@ -71,7 +71,7 @@ require("lazy").setup({
 		build = ":TSUpdate",
 		config = function()
 			require("nvim-treesitter.configs").setup({
-				ensure_installed = { "ruby", "lua", "vim", "javascript" },
+				ensure_installed = { "ruby", "lua", "vim", "javascript", "html", "embedded_template" },
 				highlight = {
 					enable = true,
 					additional_vim_regex_highlighting = false,
@@ -149,6 +149,7 @@ require("lazy").setup({
 			})
 
 			vim.lsp.config("ty", {})
+			vim.lsp.config("html_lsp", {})
 
 			vim.lsp.config("stimulus_ls", {
 				cmd = { "stimulus-language-server", "--stdio" },
@@ -157,6 +158,7 @@ require("lazy").setup({
 
 			vim.lsp.enable("ruby_lsp")
 			vim.lsp.enable("ty")
+			vim.lsp.enable("html_lsp")
 			vim.lsp.enable("stimulus_ls")
 			vim.lsp.enable("lua_ls")
 

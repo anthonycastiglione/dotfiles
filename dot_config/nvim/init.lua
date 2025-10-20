@@ -451,6 +451,8 @@ require("lazy").setup({
 						"ruff_fix",
 						"ruff_format",
 					},
+					html = { "htmlbeautifier" },
+					eruby = { "htmlbeautifier" },
 				},
 				format_on_save = {
 					lsp_fallback = true,

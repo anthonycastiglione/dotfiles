@@ -248,7 +248,12 @@ require("lazy").setup({
 		lazy = false,
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
-			require("nvim-tree").setup({})
+			require("nvim-tree").setup({
+				git = {
+					enable = true,
+					ignore = false,
+				},
+			})
 
 			-- Open nvim-tree when nvim is started with a directory argument
 			local function open_nvim_tree(data)

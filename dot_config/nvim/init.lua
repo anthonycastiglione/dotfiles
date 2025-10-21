@@ -390,6 +390,7 @@ require("lazy").setup({
 						local neotest = require("neotest")
 						neotest.run.run()
 						neotest.summary.open()
+						neotest.output_panel.open()
 					end,
 					desc = "Run the closest test to the cursor",
 				},
@@ -399,6 +400,7 @@ require("lazy").setup({
 						local neotest = require("neotest")
 						neotest.run.run(vim.fn.expand("%"))
 						neotest.summary.open()
+						neotest.output_panel.open()
 					end,
 					desc = "Run the tests for the whole file",
 				},
@@ -406,17 +408,10 @@ require("lazy").setup({
 					"<leader>sp",
 					function()
 						local neotest = require("neotest")
-						neotest.output_panel.toggle()
+						neotest.summary.close()
+						neotest.output_panel.close()
 					end,
-					desc = "Toggle neotest output panel",
-				},
-				{
-					"<leader>sv",
-					function()
-						local neotest = require("neotest")
-						neotest.summary.toggle()
-					end,
-					desc = "Toggle neotest summary panel",
+					desc = "Close neotest summary panel and output panel",
 				},
 				{ "<leader>t", "<cmd>Telescope find_files<cr>" },
 				{ "<leader>ws", "<cmd>StripWhitespace<cr>", desc = "Strip trailing whitespace" },

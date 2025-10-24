@@ -413,6 +413,14 @@ require("lazy").setup({
 					end,
 					desc = "Close neotest summary panel and output panel",
 				},
+				{
+					"<leader>sa",
+					function()
+						local neotest = require("neotest")
+						neotest.run.attach()
+					end,
+					desc = "Attach to debugger",
+				},
 				{ "<leader>t", "<cmd>Telescope find_files<cr>" },
 				{ "<leader>ws", "<cmd>StripWhitespace<cr>", desc = "Strip trailing whitespace" },
 			})
@@ -447,6 +455,7 @@ require("lazy").setup({
 			require("conform").setup({
 				formatters_by_ft = {
 					lua = { "stylua" },
+					javascript = { "prettier" },
 					python = {
 						"ruff_fix",
 						"ruff_format",

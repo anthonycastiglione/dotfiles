@@ -98,6 +98,7 @@ require("lazy").setup({
 		config = function()
 			require("mason-tool-installer").setup({
 				ensure_installed = {
+					"basedpyright",
 					"elixir-ls",
 					"eslint_d",
 					"golangci-lint",
@@ -148,16 +149,25 @@ require("lazy").setup({
 				end,
 			})
 
-			vim.lsp.config("ty", {})
 			vim.lsp.config("html_lsp", {})
 
 			vim.lsp.config("stimulus_ls", {
 				cmd = { "stimulus-language-server", "--stdio" },
 				filetypes = { "html", "ruby", "eruby", "blade", "php" },
 			})
-
+			vim.lsp.config("basedpyright", {
+				settings = {
+					basedpyright = {
+						analysis = {
+							diagnosticMode = "openFilesOnly",
+							typeCheckingMode = "basic",
+							useLibraryCodeForTypes = true,
+						},
+					},
+				},
+			})
+			vim.lsp.enable("basedpyright")
 			vim.lsp.enable("ruby_lsp")
-			vim.lsp.enable("ty")
 			vim.lsp.enable("html_lsp")
 			vim.lsp.enable("stimulus_ls")
 			vim.lsp.enable("lua_ls")

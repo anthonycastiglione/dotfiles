@@ -364,9 +364,9 @@ require("lazy").setup({
 
 			-- Register key mappings with which-key
 			wk.add({
-				{ "a", group = "live grep" },
-				{ "aw", "<cmd>Telescope live_grep <cr>", desc = "Live Grep" },
-				{ "aa", "<cmd>BlameToggle<cr>", desc = "Toggle Git Blame" },
+				{ "<leader>a", group = "live grep" },
+				{ "<leader>aw", "<cmd>Telescope live_grep <cr>", desc = "Live Grep" },
+				{ "<leader>aa", "<cmd>BlameToggle<cr>", desc = "Toggle Git Blame" },
 				{ "<leader>b", group = "buffer" },
 				{ "<leader>be", "<cmd>Telescope buffers<cr>", desc = "Buffer Explorer" },
 				{ "<leader>b", group = "diff" },

@@ -150,7 +150,7 @@ require("lazy").setup({
 
 			vim.lsp.config("stimulus_ls", {
 				cmd = { "stimulus-language-server", "--stdio" },
-				filetypes = { "html", "ruby", "eruby", "blade", "php" },
+				filetypes = { "html", "eruby" },
 			})
 			vim.lsp.config("basedpyright", {
 				settings = {
@@ -168,6 +168,55 @@ require("lazy").setup({
 			vim.lsp.enable("html_lsp")
 			vim.lsp.enable("stimulus_ls")
 			vim.lsp.enable("lua_ls")
+
+			-- Explicit LSP keymaps: bypass tagfunc fallback chain so <C-]> and gd
+			-- always use textDocument/definition (not workspace/symbol or ctags).
+			vim.api.nvim_create_autocmd("LspAttach", {
+				callback = function(ev)
+					local opts = { buffer = ev.buf, silent = true }
+
+					-- Phlex::Kit generates helper methods (e.g. Table(...)) dynamically at
+					-- runtime via const_added hooks — ruby-lsp can't resolve them statically.
+					-- Detect the pattern (UppercaseName followed by '(') and fall back to a
+					-- Telescope file search in app/components instead of failing silently.
+					local function go_to_definition()
+						local word = vim.fn.expand("<cword>")
+						local line = vim.api.nvim_get_current_line()
+						if word:match("^%u") and line:match(word .. "%s*%(") then
+							local snake = word:gsub("(%u)", function(c)
+								return "_" .. c:lower()
+							end):gsub("^_", "")
+							require("telescope.builtin").find_files({
+								prompt_title = "Component: " .. word,
+								search_dirs = { "app/components" },
+								default_text = snake .. ".rb",
+							})
+						else
+							vim.lsp.buf.definition()
+						end
+					end
+
+					vim.keymap.set(
+						"n",
+						"gd",
+						go_to_definition,
+						vim.tbl_extend("force", opts, { desc = "Go to definition" })
+					)
+					vim.keymap.set(
+						"n",
+						"<C-]>",
+						go_to_definition,
+						vim.tbl_extend("force", opts, { desc = "Go to definition" })
+					)
+					vim.keymap.set(
+						"n",
+						"gr",
+						vim.lsp.buf.references,
+						vim.tbl_extend("force", opts, { desc = "Go to references" })
+					)
+					vim.keymap.set("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover docs" }))
+				end,
+			})
 
 			-- Enable diagnostics
 			vim.diagnostic.config({

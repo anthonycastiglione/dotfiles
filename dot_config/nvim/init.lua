@@ -26,11 +26,22 @@ vim.opt.incsearch = true
 vim.opt.autoindent = true
 vim.opt.number = true
 vim.opt.updatetime = 300 -- balanced update timing for gitgutter and diagnostics
-vim.api.nvim_command("au BufRead,BufNewFile {Gemfile,Rakefile,Vagrantfile,Thorfile,config.ru,*.thor} set ft=ruby")
+vim.opt.timeout = true
+vim.opt.timeoutlen = 300
+vim.filetype.add({
+	filename = {
+		["Gemfile"] = "ruby",
+		["Rakefile"] = "ruby",
+		["Vagrantfile"] = "ruby",
+		["Thorfile"] = "ruby",
+		["config.ru"] = "ruby",
+	},
+	extension = { thor = "ruby" },
+})
 
 -- lazy.nvim bootstrap
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
 	vim.fn.system({
 		"git",
 		"clone",
@@ -52,11 +63,6 @@ require("lazy").setup({
 		config = function()
 			vim.cmd("colorscheme carbonfox")
 		end,
-	},
-
-	{
-		"sindrets/diffview.nvim",
-		event = "VeryLazy",
 	},
 
 	{
@@ -138,15 +144,6 @@ require("lazy").setup({
 					formatter = "standard",
 					linters = { "standard" },
 				},
-				on_attach = function(_client, bufnr)
-					-- Enable autoformat on save
-					vim.api.nvim_create_autocmd("BufWritePre", {
-						buffer = bufnr,
-						callback = function()
-							vim.lsp.buf.format({ async = false })
-						end,
-					})
-				end,
 			})
 
 			vim.lsp.config("html_lsp", {})
@@ -303,6 +300,7 @@ require("lazy").setup({
 
 	{
 		"xTacobaco/cursor-agent.nvim",
+		event = "VeryLazy",
 		config = function()
 			vim.keymap.set("n", "<leader>ca", ":CursorAgent<CR>", { desc = "Cursor Agent: Toggle terminal" })
 			vim.keymap.set("v", "<leader>ca", ":CursorAgentSelection<CR>", { desc = "Cursor Agent: Send selection" })
@@ -355,10 +353,6 @@ require("lazy").setup({
 	{
 		"folke/which-key.nvim",
 		event = "VeryLazy",
-		init = function()
-			vim.o.timeout = true
-			vim.o.timeoutlen = 300
-		end,
 		config = function()
 			local wk = require("which-key")
 
@@ -369,7 +363,7 @@ require("lazy").setup({
 				{ "<leader>aa", "<cmd>BlameToggle<cr>", desc = "Toggle Git Blame" },
 				{ "<leader>b", group = "buffer" },
 				{ "<leader>be", "<cmd>Telescope buffers<cr>", desc = "Buffer Explorer" },
-				{ "<leader>b", group = "diff" },
+				{ "<leader>d", group = "diff" },
 				{ "<leader>do", "<cmd>DiffviewOpen<cr>", desc = "Open Diffview" },
 				{ "<leader>dd", "<cmd>DiffviewClose<cr>", desc = "Close Diffview" },
 				{ "<leader>f", group = "find" },
@@ -431,7 +425,7 @@ require("lazy").setup({
 					end,
 					desc = "Attach to debugger",
 				},
-				{ "<leader>t", "<cmd>Telescope find_files<cr>" },
+				{ "<leader>t", "<cmd>Telescope find_files<cr>", desc = "Find files" },
 				{ "<leader>ws", "<cmd>StripWhitespace<cr>", desc = "Strip trailing whitespace" },
 			})
 		end,
@@ -446,6 +440,9 @@ require("lazy").setup({
 
 			lint.linters_by_ft = {
 				lua = { "luacheck" },
+				ruby = { "rubocop" },
+				python = { "ruff" },
+				javascript = { "eslint_d" },
 			}
 
 			-- Run linter on save and when exiting insert mode
@@ -474,8 +471,7 @@ require("lazy").setup({
 					eruby = { "htmlbeautifier" },
 				},
 				format_on_save = {
-					lsp_fallback = true,
-					async = false,
+					lsp_format = "fallback",
 					timeout_ms = 500,
 				},
 			})

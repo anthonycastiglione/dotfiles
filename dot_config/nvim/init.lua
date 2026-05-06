@@ -541,8 +541,8 @@ require("lazy").setup({
 					file_ignore_patterns = {
 						".git/",
 						".elixir_ls",
-						"_build",
-						"deps",
+						"/_build/",
+						"/deps/",
 						".tmp/",
 						"node_modules/",
 						"vendor/",

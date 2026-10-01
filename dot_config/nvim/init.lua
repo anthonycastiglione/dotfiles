@@ -2,47 +2,27 @@
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
--- optionally enable 24-bit colour
-vim.opt.termguicolors = true
-
 vim.g.mapleader = "\\" -- Make sure to set `mapleader` before lazy so your mappings are correct
 vim.g.maplocalleader = "\\" -- Same for `maplocalleader`
-
--- Register essential keybindings immediately so they work before which-key loads
-vim.keymap.set("n", "<leader>t", "<cmd>Telescope find_files<cr>", { desc = "Telescope find files" })
-vim.keymap.set("n", "<leader>aw", "<cmd>Telescope live_grep<cr>", { desc = "Telescope live grep" })
 
 -- Use faster shell for better performance
 vim.opt.shell = "/bin/bash"
 
--- smart case, ignore case, tab settings, highlight search on, incremental search on, autoindent on
+-- smart case, ignore case, tab settings, line numbers
+-- (hlsearch, incsearch, autoindent, timeout and termguicolors are Neovim defaults)
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.expandtab = true
-vim.opt.hlsearch = true
-vim.opt.incsearch = true
-vim.opt.autoindent = true
 vim.opt.number = true
 vim.opt.updatetime = 300 -- balanced update timing for gitgutter and diagnostics
-vim.opt.timeout = true
 vim.opt.timeoutlen = 300
-vim.filetype.add({
-	filename = {
-		["Gemfile"] = "ruby",
-		["Rakefile"] = "ruby",
-		["Vagrantfile"] = "ruby",
-		["Thorfile"] = "ruby",
-		["config.ru"] = "ruby",
-	},
-	extension = { thor = "ruby" },
-})
 
 -- lazy.nvim bootstrap
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then
-	vim.fn.system({
+	local out = vim.fn.system({
 		"git",
 		"clone",
 		"--filter=blob:none",
@@ -50,6 +30,10 @@ if not vim.uv.fs_stat(lazypath) then
 		"--branch=stable", -- latest stable release
 		lazypath,
 	})
+	if vim.v.shell_error ~= 0 then
+		vim.api.nvim_echo({ { "Failed to clone lazy.nvim:\n", "ErrorMsg" }, { out, "WarningMsg" } }, true, {})
+		return
+	end
 end
 vim.opt.rtp:prepend(lazypath)
 
@@ -73,6 +57,9 @@ require("lazy").setup({
 	-- Treesitter for syntax highlighting
 	{
 		"nvim-treesitter/nvim-treesitter",
+		-- The repo's default branch is now `main` (a rewrite with no `configs` module,
+		-- requires nvim 0.12). Pin `master` until migrating.
+		branch = "master",
 		event = "VeryLazy",
 		build = ":TSUpdate",
 		config = function()
@@ -89,7 +76,7 @@ require("lazy").setup({
 
 	-- Mason for LSP server management
 	{
-		"williamboman/mason.nvim",
+		"mason-org/mason.nvim",
 		event = "VeryLazy",
 		config = function()
 			require("mason").setup({})
@@ -100,31 +87,25 @@ require("lazy").setup({
 	{
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
 		event = "VeryLazy",
-		dependencies = { "williamboman/mason.nvim" },
+		dependencies = { "mason-org/mason.nvim" },
 		config = function()
 			require("mason-tool-installer").setup({
+				-- Only tools actually wired up below (LSP / nvim-lint / conform)
 				ensure_installed = {
+					-- LSP servers
 					"basedpyright",
-					"elixir-ls",
-					"eslint_d",
-					"golangci-lint",
-					"htmlbeautifier",
-					"isort",
-					"luacheck",
+					"html-lsp",
 					"lua-language-server",
-					"luaformatter",
-					"prettier",
-					"rubocop",
 					"ruby-lsp",
-					"rubyfmt",
-					"ruff",
-					"ty",
-					"shfmt",
-					"standardjs",
-					"standardrb",
 					"stimulus-language-server",
+					-- linters
+					"eslint_d",
+					"luacheck",
+					"ruff",
+					-- formatters
+					"htmlbeautifier",
+					"prettier",
 					"stylua",
-					"vtsls",
 				},
 				auto_update = true,
 				run_on_start = true,
@@ -137,8 +118,13 @@ require("lazy").setup({
 	{
 		"neovim/nvim-lspconfig",
 		event = "VeryLazy",
-		dependencies = { "williamboman/mason.nvim" },
+		dependencies = { "mason-org/mason.nvim", "hrsh7th/cmp-nvim-lsp" },
 		config = function()
+			-- Advertise nvim-cmp's completion capabilities (snippets, resolve, etc.) to every server
+			vim.lsp.config("*", {
+				capabilities = require("cmp_nvim_lsp").default_capabilities(),
+			})
+
 			vim.lsp.config("ruby_lsp", {
 				init_options = {
 					formatter = "standard",
@@ -146,13 +132,48 @@ require("lazy").setup({
 				},
 			})
 
-			vim.lsp.config("html_lsp", {})
-
-			vim.lsp.config("stimulus_ls", {
-				cmd = { "stimulus-language-server", "--stdio" },
-				filetypes = { "html", "eruby" },
+			vim.lsp.config("lua_ls", {
+				settings = {
+					Lua = {
+						runtime = { version = "LuaJIT" },
+						workspace = {
+							checkThirdParty = false,
+							library = { vim.env.VIMRUNTIME },
+						},
+					},
+				},
 			})
+
 			vim.lsp.config("basedpyright", {
+				root_dir = function(bufnr, on_dir)
+					local name = vim.api.nvim_buf_get_name(bufnr)
+
+					-- Skip pseudo-buffers (diffview://, fugitive://, oil://, …). Their names
+					-- aren't filesystem paths, so vim.fs.root() walks off into "." and nvim
+					-- sends rootUri=file://. — basedpyright can't resolve that, falls back to
+					-- its default workspace, and enumerates from / (the >10s warning).
+					if name == "" or name:match("^%a[%w+.%-]*://") then
+						return -- never calling on_dir means no client is started
+					end
+
+					local root = vim.fs.root(bufnr, {
+						"pyrightconfig.json",
+						"pyproject.toml",
+						"setup.py",
+						"setup.cfg",
+						"requirements.txt",
+						"Pipfile",
+						".git",
+					})
+
+					-- Never let a nil or relative root through; fall back to the file's own
+					-- directory (e.g. a scratch .py with no project marker above it).
+					if not root or not vim.startswith(root, "/") then
+						root = vim.fs.dirname(name)
+					end
+
+					on_dir(root)
+				end,
 				settings = {
 					basedpyright = {
 						analysis = {
@@ -163,26 +184,26 @@ require("lazy").setup({
 					},
 				},
 			})
-			vim.lsp.enable("basedpyright")
-			vim.lsp.enable("ruby_lsp")
-			vim.lsp.enable("html_lsp")
-			vim.lsp.enable("stimulus_ls")
-			vim.lsp.enable("lua_ls")
+
+			vim.lsp.enable({ "basedpyright", "ruby_lsp", "html", "stimulus_ls", "lua_ls" })
 
 			-- Explicit LSP keymaps: bypass tagfunc fallback chain so <C-]> and gd
 			-- always use textDocument/definition (not workspace/symbol or ctags).
+			-- References (grr), rename (grn), code action (gra) and hover (K) are
+			-- Neovim 0.11 defaults.
 			vim.api.nvim_create_autocmd("LspAttach", {
 				callback = function(ev)
-					local opts = { buffer = ev.buf, silent = true }
+					local opts = { buffer = ev.buf, silent = true, desc = "Go to definition" }
 
 					-- Phlex::Kit generates helper methods (e.g. Table(...)) dynamically at
 					-- runtime via const_added hooks — ruby-lsp can't resolve them statically.
-					-- Detect the pattern (UppercaseName followed by '(') and fall back to a
-					-- Telescope file search in app/components instead of failing silently.
+					-- In Ruby buffers, detect the pattern (UppercaseName followed by '(') and
+					-- fall back to a Telescope file search in app/components instead of
+					-- failing silently.
 					local function go_to_definition()
 						local word = vim.fn.expand("<cword>")
 						local line = vim.api.nvim_get_current_line()
-						if word:match("^%u") and line:match(word .. "%s*%(") then
+						if vim.bo.filetype == "ruby" and word:match("^%u") and line:match(word .. "%s*%(") then
 							local snake = word:gsub("(%u)", function(c)
 								return "_" .. c:lower()
 							end):gsub("^_", "")
@@ -196,25 +217,8 @@ require("lazy").setup({
 						end
 					end
 
-					vim.keymap.set(
-						"n",
-						"gd",
-						go_to_definition,
-						vim.tbl_extend("force", opts, { desc = "Go to definition" })
-					)
-					vim.keymap.set(
-						"n",
-						"<C-]>",
-						go_to_definition,
-						vim.tbl_extend("force", opts, { desc = "Go to definition" })
-					)
-					vim.keymap.set(
-						"n",
-						"gr",
-						vim.lsp.buf.references,
-						vim.tbl_extend("force", opts, { desc = "Go to references" })
-					)
-					vim.keymap.set("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover docs" }))
+					vim.keymap.set("n", "gd", go_to_definition, opts)
+					vim.keymap.set("n", "<C-]>", go_to_definition, opts)
 				end,
 			})
 
@@ -247,16 +251,15 @@ require("lazy").setup({
 			cmp.setup({
 				snippet = {
 					expand = function(args)
-						require("luasnip").lsp_expand(args.body)
+						luasnip.lsp_expand(args.body)
 					end,
 				},
 				window = {
 					completion = cmp.config.window.bordered(),
 					documentation = cmp.config.window.bordered(),
 				},
+				-- preset.insert already provides <C-n>/<C-p>
 				mapping = cmp.mapping.preset.insert({
-					["<C-n>"] = cmp.mapping(cmp.mapping.select_next_item(), { "i", "c" }),
-					["<C-p>"] = cmp.mapping(cmp.mapping.select_prev_item(), { "i", "c" }),
 					["<C-b>"] = cmp.mapping.scroll_docs(-4),
 					["<C-f>"] = cmp.mapping.scroll_docs(4),
 					["<CR>"] = cmp.mapping.confirm({ select = true }),
@@ -286,15 +289,6 @@ require("lazy").setup({
 					{ name = "path" },
 				}),
 			})
-		end,
-	},
-
-	-- LuaSnip for snippets
-	{
-		"L3MON4D3/LuaSnip",
-		event = "InsertEnter",
-		config = function()
-			require("luasnip.loaders.from_vscode").lazy_load()
 		end,
 	},
 
@@ -334,17 +328,22 @@ require("lazy").setup({
 	-- Diffview for git diffs
 	{
 		"sindrets/diffview.nvim",
-		event = "VeryLazy",
+		cmd = {
+			"DiffviewOpen",
+			"DiffviewClose",
+			"DiffviewToggleFiles",
+			"DiffviewFocusFiles",
+			"DiffviewRefresh",
+			"DiffviewFileHistory",
+		},
 		dependencies = { "nvim-lua/plenary.nvim" },
 	},
 
 	-- Git blame
 	{
 		"FabijanZulj/blame.nvim",
-		event = "VeryLazy",
-		config = function()
-			require("blame").setup({})
-		end,
+		cmd = "BlameToggle",
+		opts = {},
 	},
 
 	{
@@ -364,8 +363,8 @@ require("lazy").setup({
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"nvim-treesitter/nvim-treesitter",
-			"antoinemadec/FixCursorHold.nvim",
 			"nvim-neotest/nvim-nio",
+			"olimorris/neotest-rspec",
 		},
 		config = function()
 			require("neotest").setup({
@@ -374,13 +373,6 @@ require("lazy").setup({
 				},
 			})
 		end,
-	},
-
-	-- Neotest RSpec adapter
-	{
-		"olimorris/neotest-rspec",
-		event = "VeryLazy",
-		dependencies = { "nvim-neotest/neotest" },
 	},
 
 	-- Strip whitespace
@@ -406,12 +398,13 @@ require("lazy").setup({
 			local wk = require("which-key")
 
 			-- Register key mappings with which-key
+			-- (<leader>t and <leader>aw are defined as lazy `keys` on the Telescope spec)
 			wk.add({
-				{ "<leader>a", group = "live grep" },
-				{ "<leader>aw", "<cmd>Telescope live_grep <cr>", desc = "Live Grep" },
+				{ "<leader>a", group = "grep, blame" },
 				{ "<leader>aa", "<cmd>BlameToggle<cr>", desc = "Toggle Git Blame" },
 				{ "<leader>b", group = "buffer" },
 				{ "<leader>be", "<cmd>Telescope buffers<cr>", desc = "Buffer Explorer" },
+				{ "<leader>c", group = "cursor agent" },
 				{ "<leader>d", group = "diff" },
 				{ "<leader>do", "<cmd>DiffviewOpen<cr>", desc = "Open Diffview" },
 				{ "<leader>dd", "<cmd>DiffviewClose<cr>", desc = "Close Diffview" },
@@ -421,6 +414,15 @@ require("lazy").setup({
 				{ "<leader>nf", "<cmd>NvimTreeFindFile<cr>", desc = "NvimTreeFindFile" },
 				{ "<leader>nh", "<cmd>nohlsearch<cr>", desc = "nohlsearch" },
 				{ "<leader>nt", "<cmd>NvimTreeToggle<cr>", desc = "NvimTree" },
+				{ "<leader>p", group = "sql formatting", mode = "x" },
+				{
+					-- <C-u> clears the "'<,'>" that Vim auto-inserts when ':' is pressed in
+					-- visual mode, so the explicit range below isn't duplicated.
+					"<leader>pg",
+					":<C-u>'<,'>!pg_format<cr>",
+					desc = "Format selected SQL with pg_format",
+					mode = "x",
+				},
 				{ "<leader>r", group = "ruby-related things" },
 				{ "<leader>rd", "Odebugger<Esc>", desc = "Insert 'debugger' one line above" },
 				{
@@ -432,10 +434,9 @@ require("lazy").setup({
 				{
 					"<leader>sc",
 					function()
-						local neotest = require("neotest")
-						neotest.run.stop()
+						require("neotest").run.stop()
 					end,
-					desc = "Cancel the nearest test",
+					desc = "Stop the running test",
 				},
 				{
 					"<leader>st",
@@ -469,12 +470,11 @@ require("lazy").setup({
 				{
 					"<leader>sa",
 					function()
-						local neotest = require("neotest")
-						neotest.run.attach()
+						require("neotest").run.attach()
 					end,
-					desc = "Attach to debugger",
+					desc = "Attach to the running test's output",
 				},
-				{ "<leader>t", "<cmd>Telescope find_files<cr>", desc = "Find files" },
+				{ "<leader>w", group = "whitespace" },
 				{ "<leader>ws", "<cmd>StripWhitespace<cr>", desc = "Strip trailing whitespace" },
 			})
 		end,
@@ -484,22 +484,27 @@ require("lazy").setup({
 	{
 		"mfussenegger/nvim-lint",
 		event = "VeryLazy",
+		dependencies = { "mason-org/mason.nvim" }, -- puts mason's bin dir on PATH first
 		config = function()
 			local lint = require("lint")
 
+			-- Ruby linting comes from ruby-lsp (standard), so no linter here
 			lint.linters_by_ft = {
 				lua = { "luacheck" },
-				ruby = { "rubocop" },
 				python = { "ruff" },
 				javascript = { "eslint_d" },
 			}
 
-			-- Run linter on save and when exiting insert mode
-			vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+			-- Run linter on open, on save, and when exiting insert mode
+			vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost", "InsertLeave" }, {
+				group = vim.api.nvim_create_augroup("nvim-lint", { clear = true }),
 				callback = function()
 					lint.try_lint()
 				end,
 			})
+
+			-- Plugin loads after the first buffer is read, so lint it now
+			lint.try_lint()
 		end,
 	},
 
@@ -507,13 +512,15 @@ require("lazy").setup({
 	{
 		"stevearc/conform.nvim",
 		event = "VeryLazy",
+		dependencies = { "mason-org/mason.nvim" }, -- puts mason's bin dir on PATH first
 		config = function()
 			require("conform").setup({
 				formatters_by_ft = {
 					lua = { "stylua" },
 					javascript = { "prettier" },
+					-- Sort imports only; unlike ruff_fix this never deletes unused imports
 					python = {
-						"ruff_fix",
+						"ruff_organize_imports",
 						"ruff_format",
 					},
 					html = { "htmlbeautifier" },
@@ -521,7 +528,8 @@ require("lazy").setup({
 				},
 				format_on_save = {
 					lsp_format = "fallback",
-					timeout_ms = 500,
+					-- htmlbeautifier and ruby-lsp's first format can exceed 500ms
+					timeout_ms = 1000,
 				},
 			})
 		end,
@@ -532,34 +540,51 @@ require("lazy").setup({
 		"nvim-telescope/telescope.nvim",
 		branch = "master",
 		dependencies = { "nvim-lua/plenary.nvim" },
-		event = "VeryLazy",
+		cmd = "Telescope",
+		keys = {
+			{ "<leader>t", "<cmd>Telescope find_files<cr>", desc = "Find files" },
+			{ "<leader>aw", "<cmd>Telescope live_grep<cr>", desc = "Live grep" },
+		},
 		config = function()
 			local telescope = require("telescope")
+			local actions = require("telescope.actions")
+
+			-- ripgrep exclusions (gitignore-style globs; a leading "/" anchors to the
+			-- project root so e.g. app/views/tags/ isn't hidden by the ctags file rule)
+			local rg_excludes = {
+				"--glob=!.git/",
+				"--glob=!node_modules/",
+				"--glob=!vendor/",
+				"--glob=!.tmp/",
+				"--glob=!/tags",
+				"--glob=!/.elixir_ls/",
+				"--glob=!/_build/",
+				"--glob=!/deps/",
+			}
 
 			telescope.setup({
 				defaults = {
-					file_ignore_patterns = {
-						".git/",
-						".elixir_ls",
-						"/_build/",
-						"/deps/",
-						".tmp/",
-						"node_modules/",
-						"vendor/",
-					},
+					vimgrep_arguments = vim.list_extend({
+						"rg",
+						"--color=never",
+						"--no-heading",
+						"--with-filename",
+						"--line-number",
+						"--column",
+						"--smart-case",
+					}, rg_excludes),
 					mappings = {
 						n = {
-							["<C-e>"] = require("telescope.actions").delete_buffer,
+							["<C-e>"] = actions.delete_buffer,
 						},
 						i = {
-							["<C-e>"] = require("telescope.actions").delete_buffer,
+							["<C-e>"] = actions.delete_buffer,
 						},
 					},
 				},
 				pickers = {
 					find_files = {
-						hidden = true,
-						no_ignore = false,
+						find_command = vim.list_extend({ "rg", "--files", "--hidden" }, rg_excludes),
 					},
 				},
 			})

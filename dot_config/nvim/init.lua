@@ -19,6 +19,31 @@ vim.opt.number = true
 vim.opt.updatetime = 300 -- balanced update timing for gitgutter and diagnostics
 vim.opt.timeoutlen = 300
 
+-- Jekyll (Liquid) templates use plain .html, and Neovim's content sniffing calls
+-- them htmldjango because the tags overlap. Treat .html as liquid inside a Jekyll
+-- project or when it uses Liquid-only tags; otherwise return nil so the built-in
+-- html detection runs.
+local liquid_only_tags = { assign = true, capture = true, unless = true, render = true, case = true }
+vim.filetype.add({
+	pattern = {
+		[".*%.html"] = function(path, bufnr)
+			if vim.fs.root(path, "_config.yml") then
+				return "liquid"
+			end
+			if not bufnr then
+				return
+			end
+			for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, 100, false)) do
+				for tag in line:gmatch("{%%%-?%s*(%a+)") do
+					if liquid_only_tags[tag] then
+						return "liquid"
+					end
+				end
+			end
+		end,
+	},
+})
+
 -- lazy.nvim bootstrap
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then
@@ -523,8 +548,26 @@ require("lazy").setup({
 						"ruff_organize_imports",
 						"ruff_format",
 					},
-					html = { "htmlbeautifier" },
+					html = { "prettier" },
 					eruby = { "htmlbeautifier" },
+					liquid = { "prettier_liquid" },
+				},
+				formatters = {
+					-- Plugin installed outside mason (it has no package for it):
+					--   npm install --prefix ~/.local/share/nvim/prettier-plugins @shopify/prettier-plugin-liquid
+					prettier_liquid = {
+						inherit = "prettier",
+						prepend_args = {
+							"--plugin="
+								.. vim.fn.stdpath("data")
+								.. "/prettier-plugins/node_modules/@shopify/prettier-plugin-liquid/dist/index.js",
+							"--parser=liquid-html",
+							-- Skip .prettierignore/.gitignore: repos that only prettier their JS
+							-- (e.g. empirical_web ignores everything but *.js) would otherwise get
+							-- the file echoed back unchanged, with no error.
+							"--ignore-path=/dev/null",
+						},
+					},
 				},
 				format_on_save = {
 					lsp_format = "fallback",

@@ -129,6 +129,7 @@ require("lazy").setup({
 					"ruff",
 					-- formatters
 					"htmlbeautifier",
+					"pgformatter", -- pg_format, for <leader>pg
 					"prettier",
 					"stylua",
 				},
@@ -155,6 +156,11 @@ require("lazy").setup({
 					formatter = "standard",
 					linters = { "standard" },
 				},
+			})
+
+			-- nvim-lspconfig's default also attaches to ruby, blade and php
+			vim.lsp.config("stimulus_ls", {
+				filetypes = { "html", "eruby" },
 			})
 
 			vim.lsp.config("lua_ls", {
@@ -404,6 +410,11 @@ require("lazy").setup({
 	{
 		"ntpeters/vim-better-whitespace",
 		event = "VeryLazy",
+		init = function()
+			-- Its default <leader>s operator collides with the neotest <leader>s* maps;
+			-- <leader>ws covers stripping instead
+			vim.g.better_whitespace_operator = ""
+		end,
 	},
 
 	-- Mini.icons for icons
